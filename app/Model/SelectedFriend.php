@@ -6,8 +6,7 @@
  * and open the template in the editor.
  */
 
-
-class Like extends AppModel {
+class SelectedFriend extends AppModel {
     
     public $belongsTo = array(
         'Friend' => array(
@@ -17,4 +16,18 @@ class Like extends AppModel {
             'className' => 'User',
         )
     );    
+    
+    
+    public function clearSelectedFriendFromUser($user_id = null)
+    {
+        if(is_null($user_id)){
+            return;
+        }
+        
+        $this->deleteAll(array(
+            'SelectedFriend.user_id' => $user_id
+        ), false);    
+        
+    }
+    
 }

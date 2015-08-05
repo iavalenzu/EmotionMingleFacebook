@@ -6,8 +6,7 @@
  * and open the template in the editor.
  */
 
-
-class Like extends AppModel {
+class Comment extends AppModel {
     
     public $belongsTo = array(
         'Friend' => array(
