@@ -19,7 +19,8 @@ class HomeController extends AppController {
     
     public $fb;
 
-    public function beforeFilter() {
+    public function beforeFilter() 
+    {
         parent::beforeFilter();
 
         session_start();
@@ -30,7 +31,6 @@ class HomeController extends AppController {
             'default_graph_version' => 'v2.2',
         ]);
 
-        //print_r($this->fb);
     }
 
     function login() 
@@ -83,6 +83,7 @@ class HomeController extends AppController {
 
                 if(!$this->User->save($user))
                 {
+                    $this->log("Hubo un error al guardar el usuario");
                 }
                 else
                 {
@@ -92,20 +93,17 @@ class HomeController extends AppController {
                     $this->processPostLikes($this->User->id);
                     $this->processPostComments($this->User->id);
                 }
-            
             }
             else
             {
                 $this->processPhotoLikes($user['User']['id']);
                 $this->processPhotoComments($user['User']['id']);
                 
-                
                 $this->processPostLikes($user['User']['id']);
                 $this->processPostComments($user['User']['id']);
             }
             
-            
-            //$this->redirect('showSelectedUsers');
+            $this->redirect('showSelectedUsers');
             
         } catch (Facebook\Exceptions\FacebookResponseException $e) {
             // When Graph returns an error
@@ -159,21 +157,13 @@ class HomeController extends AppController {
                 $friendName = $like['name'];
                 $friendPic = $like['pic'];
                 
-                
                 /**
                  * Se busca en la BD la info de amigo asociado al id dado
                  */
                 
+                $this->Friend->recursive = -1;
                 $existingFriend = $this->Friend->findByUserIdAndFacebookUserId($user_id, $friendId);
 
-                /*
-                $existingFriend = $this->Friend->find('first', array(
-                    'conditions' => array(
-                        'Friend.user_id' => $user_id,
-                        'Friend.facebook_user_id' => $friendId)
-                ));
-                */
-                
                 if(isset($existingFriend) && !empty($existingFriend))
                 {
                     /**
@@ -188,40 +178,7 @@ class HomeController extends AppController {
                      * Se busca si el like ya se encuentra en la BD
                      */
                     
-                    $existingLike = $this->Like->findByFriendIdAndUserIdAndSourceAndType($existingFriend['Friend']['id'], $user_id, $sourceId, 'POST');
-                    
-                    /*
-                    $existingLike = $this->Like->find('first', array(
-                        'conditions' => array(
-                            'Like.friend_id' => $existingFriend['Friend']['id'],
-                            'Like.user_id' => $user_id,
-                            'Like.source' => $sourceId,
-                            'Like.type' => 'PHOTO'
-                        )
-                    ));
-                    */
-                    
-                    /**
-                     * Si no se encuentra el like en la BD, se crea el registro
-                     */
-                    
-                    if(!isset($existingLike) || empty($existingLike))
-                    {
-                        $newLike = array(
-                            'friend_id' => $existingFriend['Friend']['id'],
-                            'user_id' => $user_id,
-                            'source' => $sourceId,
-                            'type' => 'POST'
-                        );
-                        
-                        $this->Like->create();
-                        
-                        if(!$this->Like->save($newLike))
-                        {
-                            $this->Session->setFlash(__('Error al guardar el nuevo like.'));
-                        }
-
-                    }
+                    $this->Like->saveUniqueLike($existingFriend['Friend']['id'], $user_id, $sourceId, 'POST');
                     
                 }
                 else
@@ -246,49 +203,11 @@ class HomeController extends AppController {
                     }
                     else
                     {
-                        
-                        $existingLike = $this->Like->findByFriendIdAndUserIdAndSourceAndType($this->Friend->id, $user_id, $sourceId, 'POST');
-                        
-                        /*
-                        $existingLike = $this->Like->find('first', array(
-                            'conditions' => array(
-                                'Like.friend_id' => $this->Friend->id,
-                                'Like.user_id' => $user_id,
-                                'Like.source' => $sourceId,
-                                'Like.type' => 'PHOTO'
-                            )
-                        ));
-                        */
-                        
-                        if(!isset($existingLike) || empty($existingLike))
-                        {
-                            $newLike = array(
-                                'friend_id' => $this->Friend->id,
-                                'user_id' => $user_id,
-                                'source' => $sourceId,
-                                'type' => 'POST'
-                            );
-
-                            $this->Like->create();
-                            
-                            if(!$this->Like->save($newLike))
-                            {
-                                $this->Session->setFlash(__('Error al guardar el nuevo like.'));
-                            }
-
-                        }
-                        
+                        $this->Like->saveUniqueLike($this->Friend->id, $user_id, $sourceId, 'POST');
                     }
-                    
                 }
-                  
             }
-            
-            
         }
-        
-        
-
     }
 
     private function processPostComments($user_id)
@@ -328,7 +247,6 @@ class HomeController extends AppController {
             
             foreach($comments as $comment)
             {
-                
                 $from = $comment->getField('from');
                                 
                 $friendId = $from['id'];
@@ -338,61 +256,19 @@ class HomeController extends AppController {
                  * Se busca en la BD la info de amigo asociado al id dado
                  */
                 
+                $this->Friend->recursive = -1;
                 $existingFriend = $this->Friend->findByUserIdAndFacebookUserId($user_id, $friendId);
 
-                /*
-                $existingFriend = $this->Friend->find('first', array(
-                    'conditions' => array(
-                        'Friend.user_id' => $user_id,
-                        'Friend.facebook_user_id' => $friendId)
-                ));
-                */
-                
                 if(isset($existingFriend) && !empty($existingFriend))
                 {
                     /**
-                     * Se busca si el like ya se encuentra en la BD
+                     * Se busca si el comment ya se encuentra en la BD
                      */
                     
-                    $existingComment = $this->Comment->findByFriendIdAndUserIdAndSourceAndType($existingFriend['Friend']['id'], $user_id, $sourceId, 'POST');
-                    
-                    /*
-                    $existingLike = $this->Like->find('first', array(
-                        'conditions' => array(
-                            'Like.friend_id' => $existingFriend['Friend']['id'],
-                            'Like.user_id' => $user_id,
-                            'Like.source' => $sourceId,
-                            'Like.type' => 'PHOTO'
-                        )
-                    ));
-                    */
-                    
-                    /**
-                     * Si no se encuentra el like en la BD, se crea el registro
-                     */
-                    
-                    if(!isset($existingComment) || empty($existingComment))
-                    {
-                        $newComment = array(
-                            'friend_id' => $existingFriend['Friend']['id'],
-                            'user_id' => $user_id,
-                            'source' => $sourceId,
-                            'type' => 'POST'
-                        );
-                        
-                        $this->Comment->create();
-                        
-                        if(!$this->Comment->save($newComment))
-                        {
-                            $this->Session->setFlash(__('Error al guardar el nuevo comentario.'));
-                        }
-
-                    }
-                    
+                    $this->Comment->saveUniqueComment($existingFriend['Friend']['id'], $user_id, $sourceId, 'POST');
                 }
                 else
                 {
-                    
                     /**
                      * Si el amigo no se encuentra en la BD, se crea el nuevo registro
                      * y el like asociado
@@ -413,50 +289,13 @@ class HomeController extends AppController {
                     }
                     else
                     {
-                        
-                        $existingComment = $this->Comment->findByFriendIdAndUserIdAndSourceAndType($this->Friend->id, $user_id, $sourceId, 'PHOTO');
-                        
-                        /*
-                        $existingLike = $this->Like->find('first', array(
-                            'conditions' => array(
-                                'Like.friend_id' => $this->Friend->id,
-                                'Like.user_id' => $user_id,
-                                'Like.source' => $sourceId,
-                                'Like.type' => 'PHOTO'
-                            )
-                        ));
-                        */
-                        
-                        if(!isset($existingComment) || empty($existingComment))
-                        {
-                            $newComment = array(
-                                'friend_id' => $this->Friend->id,
-                                'user_id' => $user_id,
-                                'source' => $sourceId,
-                                'type' => 'POST'
-                            );
-
-                            $this->Comment->create();
-                            
-                            if(!$this->Comment->save($newComment))
-                            {
-                                $this->Session->setFlash(__('Error al guardar el nuevo like.'));
-                            }
-
-                        }
-                        
+                        $this->Comment->saveUniqueComment($this->Friend->id, $user_id, $sourceId, 'PHOTO');
                     }
-                    
                 }
-                  
             }
-            
-            
         }
-        
 
     }
-    
     
     private function processPhotoLikes($user_id)
     {
@@ -499,21 +338,13 @@ class HomeController extends AppController {
                 $friendName = $like['name'];
                 $friendPic = $like['pic'];
                 
-                
                 /**
                  * Se busca en la BD la info de amigo asociado al id dado
                  */
                 
+                $this->Friend->recursive = -1;
                 $existingFriend = $this->Friend->findByUserIdAndFacebookUserId($user_id, $friendId);
 
-                /*
-                $existingFriend = $this->Friend->find('first', array(
-                    'conditions' => array(
-                        'Friend.user_id' => $user_id,
-                        'Friend.facebook_user_id' => $friendId)
-                ));
-                */
-                
                 if(isset($existingFriend) && !empty($existingFriend))
                 {
                     /**
@@ -528,40 +359,7 @@ class HomeController extends AppController {
                      * Se busca si el like ya se encuentra en la BD
                      */
                     
-                    $existingLike = $this->Like->findByFriendIdAndUserIdAndSourceAndType($existingFriend['Friend']['id'], $user_id, $sourceId, 'PHOTO');
-                    
-                    /*
-                    $existingLike = $this->Like->find('first', array(
-                        'conditions' => array(
-                            'Like.friend_id' => $existingFriend['Friend']['id'],
-                            'Like.user_id' => $user_id,
-                            'Like.source' => $sourceId,
-                            'Like.type' => 'PHOTO'
-                        )
-                    ));
-                    */
-                    
-                    /**
-                     * Si no se encuentra el like en la BD, se crea el registro
-                     */
-                    
-                    if(!isset($existingLike) || empty($existingLike))
-                    {
-                        $newLike = array(
-                            'friend_id' => $existingFriend['Friend']['id'],
-                            'user_id' => $user_id,
-                            'source' => $sourceId,
-                            'type' => 'PHOTO'
-                        );
-                        
-                        $this->Like->create();
-                        
-                        if(!$this->Like->save($newLike))
-                        {
-                            $this->Session->setFlash(__('Error al guardar el nuevo like.'));
-                        }
-
-                    }
+                    $this->Like->saveUniqueLike($existingFriend['Friend']['id'], $user_id, $sourceId, 'PHOTO');
                     
                 }
                 else
@@ -586,48 +384,11 @@ class HomeController extends AppController {
                     }
                     else
                     {
-                        
-                        $existingLike = $this->Like->findByFriendIdAndUserIdAndSourceAndType($this->Friend->id, $user_id, $sourceId, 'PHOTO');
-                        
-                        /*
-                        $existingLike = $this->Like->find('first', array(
-                            'conditions' => array(
-                                'Like.friend_id' => $this->Friend->id,
-                                'Like.user_id' => $user_id,
-                                'Like.source' => $sourceId,
-                                'Like.type' => 'PHOTO'
-                            )
-                        ));
-                        */
-                        
-                        if(!isset($existingLike) || empty($existingLike))
-                        {
-                            $newLike = array(
-                                'friend_id' => $this->Friend->id,
-                                'user_id' => $user_id,
-                                'source' => $sourceId,
-                                'type' => 'PHOTO'
-                            );
-
-                            $this->Like->create();
-                            
-                            if(!$this->Like->save($newLike))
-                            {
-                                $this->Session->setFlash(__('Error al guardar el nuevo like.'));
-                            }
-
-                        }
-                        
+                        $this->Like->saveUniqueLike($this->Friend->id, $user_id, $sourceId, 'PHOTO');
                     }
-                    
                 }
-                  
             }
-            
-            
         }
-        
-        
     }
     
     private function processPhotoComments($user_id)
@@ -677,61 +438,19 @@ class HomeController extends AppController {
                  * Se busca en la BD la info de amigo asociado al id dado
                  */
                 
+                $this->Friend->recursive = -1;
                 $existingFriend = $this->Friend->findByUserIdAndFacebookUserId($user_id, $friendId);
 
-                /*
-                $existingFriend = $this->Friend->find('first', array(
-                    'conditions' => array(
-                        'Friend.user_id' => $user_id,
-                        'Friend.facebook_user_id' => $friendId)
-                ));
-                */
-                
                 if(isset($existingFriend) && !empty($existingFriend))
                 {
                     /**
                      * Se busca si el like ya se encuentra en la BD
                      */
                     
-                    $existingComment = $this->Comment->findByFriendIdAndUserIdAndSourceAndType($existingFriend['Friend']['id'], $user_id, $sourceId, 'PHOTO');
-                    
-                    /*
-                    $existingLike = $this->Like->find('first', array(
-                        'conditions' => array(
-                            'Like.friend_id' => $existingFriend['Friend']['id'],
-                            'Like.user_id' => $user_id,
-                            'Like.source' => $sourceId,
-                            'Like.type' => 'PHOTO'
-                        )
-                    ));
-                    */
-                    
-                    /**
-                     * Si no se encuentra el like en la BD, se crea el registro
-                     */
-                    
-                    if(!isset($existingComment) || empty($existingComment))
-                    {
-                        $newComment = array(
-                            'friend_id' => $existingFriend['Friend']['id'],
-                            'user_id' => $user_id,
-                            'source' => $sourceId,
-                            'type' => 'PHOTO'
-                        );
-                        
-                        $this->Comment->create();
-                        
-                        if(!$this->Comment->save($newComment))
-                        {
-                            $this->Session->setFlash(__('Error al guardar el nuevo comentario.'));
-                        }
-
-                    }
-                    
+                    $this->Comment->saveUniqueComment($existingFriend['Friend']['id'], $user_id, $sourceId, 'PHOTO');
                 }
                 else
                 {
-                    
                     /**
                      * Si el amigo no se encuentra en la BD, se crea el nuevo registro
                      * y el like asociado
@@ -752,48 +471,11 @@ class HomeController extends AppController {
                     }
                     else
                     {
-                        
-                        $existingComment = $this->Comment->findByFriendIdAndUserIdAndSourceAndType($this->Friend->id, $user_id, $sourceId, 'PHOTO');
-                        
-                        /*
-                        $existingLike = $this->Like->find('first', array(
-                            'conditions' => array(
-                                'Like.friend_id' => $this->Friend->id,
-                                'Like.user_id' => $user_id,
-                                'Like.source' => $sourceId,
-                                'Like.type' => 'PHOTO'
-                            )
-                        ));
-                        */
-                        
-                        if(!isset($existingComment) || empty($existingComment))
-                        {
-                            $newComment = array(
-                                'friend_id' => $this->Friend->id,
-                                'user_id' => $user_id,
-                                'source' => $sourceId,
-                                'type' => 'PHOTO'
-                            );
-
-                            $this->Comment->create();
-                            
-                            if(!$this->Comment->save($newComment))
-                            {
-                                $this->Session->setFlash(__('Error al guardar el nuevo like.'));
-                            }
-
-                        }
-                        
+                        $this->Comment->saveUniqueComment($this->Friend->id, $user_id, $sourceId, 'PHOTO');
                     }
-                    
                 }
-                  
             }
-            
-            
         }
-        
-        
     }
     
     
