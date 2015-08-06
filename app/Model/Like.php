@@ -44,8 +44,8 @@ class Like extends AppModel {
                 'type' => $type
             );
 
-            $this->Like->create();
-            $this->Like->save($newLike);
+            $this->create();
+            $this->save($newLike);
 
         }
         

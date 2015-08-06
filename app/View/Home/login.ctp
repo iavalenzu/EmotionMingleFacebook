@@ -1,6 +1,10 @@
 <?php 
 
-echo '<a href="' . $loginUrl . '">Log in with Facebook!</a>';
+echo $this->Html->link(
+    $this->Html->image("log_in_with_facebook.png", array("alt" => "Log in with facebook")),
+    $loginUrl,
+    array('escape' => false)
+);
 
 
 ?>

@@ -3,14 +3,15 @@
     
     <h3>Actions</h3>
     <ul>
-        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "logout")); ?>">Logout</a></li>
+        <li><a href="<?php echo $logout_url; ?>">Logout</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "showSelectedUsers")); ?>">Show Selected Users</a></li>
+        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "refreshData")); ?>">Refresh</a></li>
     </ul>
 </div>
 
 <div class="view">
     
-    <?php if(isset($likes)): ?>
+    <?php if(isset($friends)): ?>
 
         <form action="<?php echo $this->Html->url(array("controller" => "home", "action" => "modifySelectedUsers")); ?>" method="post">
 
@@ -20,17 +21,49 @@
                     <thead>
                         <tr>
                             <th>Selecciona</th>
+                            <th>Hoja</th>
                             <th>Nombre</th>
                             <th>Avatar</th>
+                            <th>Interacciones</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach($likes as $like): ?>
+                    <?php $count = 0; ?>    
+                    <?php foreach($friends as $friend): ?>
+                        <?php //debug($friend); ?>
                         <tr>
-                            <td><input type="checkbox" name="data[friend_list][]" value="<?php echo $like['Friend']['id'];?>"></td>
-                            <td><?php echo $like['Friend']['name']; ?></td>
-                            <td><img src="<?php echo $like['Friend']['pic']; ?>" alt="<?php echo $like['Friend']['name']; ?>"></td>
+                            <td><?php echo $this->Form->input(null, array('type' => 'checkbox', 'name' => "data[$count][friend_id]", 'hiddenField' => false, 'label' => false, 'value' => $friend['Friend']['id'])); ?></td>
+                            <td>
+                                <?php 
+                            
+                                    $leafs = array(
+                                        '1' => 'Hoja 1', 
+                                        '2' => 'Hoja 2', 
+                                        '3' => 'Hoja 3',
+                                        '4' => 'Hoja 4',
+                                        '5' => 'Hoja 5',
+                                        '6' => 'Hoja 6',
+                                        '7' => 'Hoja 7',
+                                        '8' => 'Hoja 8'
+                                    );
+                                    
+                                    echo $this->Form->input(
+                                        null,
+                                        array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => '1', 'label' => false)
+                                    );
+                                
+                                ?>
+                            </td>
+                            <td><?php echo $friend['Friend']['name']; ?></td>
+                            <td><img src="<?php echo $friend['Friend']['pic']; ?>" alt="<?php echo $friend['Friend']['name']; ?>"></td>
+                            <td><?php echo $friend['Friend']['interactions']; ?></td>
+                            <td class="actions">
+                                <a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "friendDetails", $friend['Friend']['id'])); ?>">Ver</a>
+                                
+                            </td>
                         </tr>
+                    <?php $count++; ?>    
                     <?php endforeach; ?>
                     </tbody>
                 </table>

@@ -6,7 +6,8 @@
  * and open the template in the editor.
  */
 
-class Comment extends AppModel {
+
+class Tag extends AppModel {
     
     public $belongsTo = array(
         'Friend' => array(
@@ -17,25 +18,26 @@ class Comment extends AppModel {
         )
     );    
     
-    public function saveUniqueComment($friend_id = null, $user_id = null, $source_id = null, $type = null)
+    
+    public function saveUniqueTag($friend_id = null, $user_id = null, $source_id = null, $type = null)
     {
         if(is_null($friend_id) || is_null($user_id) || is_null($source_id) || is_null($type)){
             return;
         }
         
-        $existingComment = $this->find('first', array(
+        $existingTag = $this->find('first', array(
             'conditions' => array(
-                'Comment.friend_id' => $friend_id,
-                'Comment.user_id' => $user_id,
-                'Comment.source' => $source_id,
-                'Comment.type' => $type
+                'Tag.friend_id' => $friend_id,
+                'Tag.user_id' => $user_id,
+                'Tag.source' => $source_id,
+                'Tag.type' => $type
             ),
             'recursive' => -1
         ));
         
-        if(!isset($existingComment) || empty($existingComment))
+        if(!isset($existingTag) || empty($existingTag))
         {
-            $newComment = array(
+            $newTag = array(
                 'friend_id' => $friend_id,
                 'user_id' => $user_id,
                 'source' => $source_id,
@@ -43,10 +45,10 @@ class Comment extends AppModel {
             );
 
             $this->create();
-            $this->save($newComment);
+            $this->save($newTag);
 
         }
         
-    }    
+    }
     
 }

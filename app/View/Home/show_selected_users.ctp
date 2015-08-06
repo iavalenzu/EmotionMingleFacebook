@@ -3,8 +3,9 @@
     
     <h3>Actions</h3>
     <ul>
-        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "logout")); ?>">Logout</a></li>
+        <li><a href="<?php echo $logout_url; ?>">Logout</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "modifySelectedUsers")); ?>">Modify Selected Users</a></li>
+        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "refreshData")); ?>">Refresh</a></li>
     </ul>
 </div>
 
@@ -18,6 +19,7 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
+                        <th>Hoja</th>
                         <th>Avatar</th>
                     </tr>
                 </thead>
@@ -25,6 +27,7 @@
                 <?php foreach($selectedUsers as $selectedUser): ?>
                     <tr>
                         <td><?php echo $selectedUser['Friend']['name']; ?></td>
+                        <td><?php echo $selectedUser['SelectedFriend']['leaf']; ?></td>
                         <td><img src="<?php echo $selectedUser['Friend']['pic']; ?>" alt="<?php echo $selectedUser['Friend']['name']; ?>"></td>
                     </tr>
                 <?php endforeach; ?>
