@@ -35,9 +35,21 @@ class HomeController extends AppController {
         
     }
 
-    function login() 
+    private function checkSession($redirect = true)
     {
         if(isset($_SESSION['facebook_access_token']) && !empty($_SESSION['facebook_access_token'])){
+            return $_SESSION['facebook_access_token'];
+        }else{
+            if($redirect){
+                $this->redirect("logout");
+            }
+        }
+    }
+    
+    
+    function login() 
+    {
+        if($this->checkSession(false)){
             $this->redirect("home");
         }
         
@@ -45,18 +57,26 @@ class HomeController extends AppController {
 
         $permissions = ['email', 'user_likes']; // optional
 
-        $loginUrl = $helper->getLoginUrl('http://localhost/EmotionMingleFacebook/home/loginCallback', $permissions);
+        $loginCallbackUrl = Router::url(array('controller'=>'home', 'action'=>'loginCallback'), true);
+        
+        $loginUrl = $helper->getLoginUrl($loginCallbackUrl, $permissions);
 
         $this->set("loginUrl", $loginUrl);
     }
 
     function home()
     {
+        $this->checkSession();
+        
+        $this->redirect('refreshData');
         
     }
     
     function refreshData() 
     {
+        $this->checkSession();
+        
+        
         $this->setRedirecUrl(Router::url(array('controller'=>'home', 'action'=>'refresh'), true));
         $this->redirect('loading');
     }
@@ -750,7 +770,8 @@ class HomeController extends AppController {
             exit;
         }
 
-        if (isset($accessToken)) {
+        if (isset($accessToken) && !empty($accessToken)) 
+        {
             // Logged in!
             $_SESSION['facebook_access_token'] = (string) $accessToken;
 
@@ -759,9 +780,14 @@ class HomeController extends AppController {
             
             $this->redirect('refreshData');
         }
+        else
+        {
+            $this->redirect('logout');
+        }
     }
 
-    function index() {
+    function index() 
+    {
         $this->redirect("login");
     }
     
@@ -789,6 +815,8 @@ class HomeController extends AppController {
     
     function loading()
     {
+        $this->checkSession();
+
         $this->autoLayout = false;
         
         $redirect_url = $this->getRedirectUrl();
@@ -799,13 +827,8 @@ class HomeController extends AppController {
     
     function refresh()
     {
-        if(isset($_SESSION['facebook_access_token']) && !empty($_SESSION['facebook_access_token'])){
-            $accessToken = $_SESSION['facebook_access_token'];
-        }else{
-            $this->redirect("logout");
-        }
-    
-        
+        $accessToken = $this->checkSession();
+                    
         // Sets the default fallback access token so we don't have to pass it to each request
         $this->fb->setDefaultAccessToken($accessToken);
 
@@ -874,9 +897,9 @@ class HomeController extends AppController {
     
     function friendDetails($friend_id = null)
     {
+        $this->checkSession();
+
         $friend = $this->Friend->findById($friend_id);
-        
-        //debug($friend);
         
         $this->set('friend', $friend);
         
@@ -893,11 +916,7 @@ class HomeController extends AppController {
     
     function modifySelectedUsers()
     {
-        if(isset($_SESSION['facebook_access_token']) && !empty($_SESSION['facebook_access_token'])){
-            $accessToken = $_SESSION['facebook_access_token'];
-        }else{
-            $this->redirect("logout");
-        }
+        $accessToken = $this->checkSession();
 
         // Sets the default fallback access token so we don't have to pass it to each request
         $this->fb->setDefaultAccessToken($accessToken);
@@ -919,69 +938,20 @@ class HomeController extends AppController {
             
             $friends = $this->Friend->findAllByUserId($user['User']['id']);
             
-            foreach($friends as &$friend)
-            {
-                $likes = count($friend['Like']);
-                $comments = count($friend['Comment']);
-                $tags = count($friend['Tag']);
-                
-                $friend['Friend']['interactions'] = $likes + $comments + $tags;
-            }
-            
-            usort($friends, array( $this, 'interactionsOrder' ));
-            
-            /*
-            $friends = $this->Friend->find('all', array(
-                'fields' => array('COUNT(*) AS Total', 'Friend.*'),
-                'conditions' => array(
-                    'Friend.user_id' => $user['User']['id']
-                ),
-                'joins' => array(
-                    
-                    array(
-                        'table' => 'comments',
-                        'alias' => 'CommentJoin',
-                        'type' => 'LEFT',
-                        'conditions' => array(
-                            'CommentJoin.friend_id = Friend.id',
-                            'Friend.id IS NULL'
-                        )
-                    ),
-                    array(
-                        'table' => 'likes',
-                        'alias' => 'LikeJoin',
-                        'type' => 'LEFT',
-                        'conditions' => array(
-                            'LikeJoin.friend_id = Friend.id',
-                            'Friend.id IS NULL'
-                        )
-                    ),
-                    array(
-                        'table' => 'tags',
-                        'alias' => 'TagJoin',
-                        'type' => 'LEFT',
-                        'conditions' => array(
-                            'TagJoin.friend_id = Friend.id',
-                            'Friend.id IS NULL'
-                        )
-                    ),
-                ),
-                'group' => 'Friend.id',
-                'order' => 'Total DESC',
-                'limit' => 50
-                
-            ));
-             * 
+            /**
+             * Se ordenan segun el numero de interacciones de mayor a menor
              */
-            
-            //debug($friends);
+            usort($friends, array( $this, 'interactionsOrder' ));
             
             $this->set('friends', $friends);
             
+            $this->SelectedFriend->recursive = -1;
+            $currentSelectedFriends = $this->SelectedFriend->findAllByUserId($user['User']['id']);
+            
+            $this->set('currentSelectedFriends', $currentSelectedFriends);
             
             if(!empty($this->data))
             {
-                
                 $selectedFriends = array();
                 
                 foreach($this->data as $option)
@@ -1026,13 +996,8 @@ class HomeController extends AppController {
 
     function showSelectedUsers()
     {
-        if(isset($_SESSION['facebook_access_token']) && !empty($_SESSION['facebook_access_token'])){
-            $accessToken = $_SESSION['facebook_access_token'];
-        }else{
-            $this->redirect("logout");
-        }
-        
-        
+        $accessToken = $this->checkSession();
+                
         // Sets the default fallback access token so we don't have to pass it to each request
         $this->fb->setDefaultAccessToken($accessToken);
 
@@ -1052,14 +1017,17 @@ class HomeController extends AppController {
                 )
             ));
             
-            //debug($selectedUsers);
-            
             $this->set('selectedUsers', $selectedUsers);
             
         }   
         
     }
     
+    function showTree()
+    {
+        $accessToken = $this->checkSession();
+        
+    }
     
     private function getLogoutUrl()
     {
@@ -1084,10 +1052,41 @@ class HomeController extends AppController {
         
     }
     
+    private function getLeafValue($leaf = null, $user_id = null)
+    {
+        $selectedFriend = $this->SelectedFriend->findByUserIdAndLeaf($user_id, $leaf);
+        
+        if(empty($selectedFriend)){
+            return 0;
+        }
+        
+        $friend = $this->Friend->findById($selectedFriend['SelectedFriend']['friend_id']);
+        
+        if(empty($friend)){
+            return 0;
+        }
+        
+        return $friend['Friend']['interactions'];
+    }
     
     function getEmotionMingleTreeData($user_id = null)
     {
+        $this->autoRender = false;
+        $this->response->type('json');
         
+	$leafs_values = array(
+	    "Leaf1" => $this->getLeafValue(1, $user_id),
+	    "Leaf2" => $this->getLeafValue(2, $user_id),
+	    "Leaf3" => $this->getLeafValue(3, $user_id),
+	    "Leaf4" => $this->getLeafValue(4, $user_id),
+	    "Leaf5" => $this->getLeafValue(5, $user_id),
+	    "Leaf6" => $this->getLeafValue(6, $user_id),
+	    "Leaf7" => $this->getLeafValue(7, $user_id),
+	    "Leaf8" => $this->getLeafValue(8, $user_id)
+	);
+        
+        $json = json_encode($leafs_values);
+        $this->response->body($json);               
     }
     
     

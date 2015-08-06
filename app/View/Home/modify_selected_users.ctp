@@ -31,9 +31,25 @@
                     <tbody>
                     <?php $count = 0; ?>    
                     <?php foreach($friends as $friend): ?>
-                        <?php //debug($friend); ?>
+                        <?php //debug($friend); 
+                        
+                            $selectedFriend = null;
+                        
+                            if(isset($currentSelectedFriends))
+                            {
+                                foreach($currentSelectedFriends as $currentSelectedFriend)
+                                {
+                                    if($currentSelectedFriend['SelectedFriend']['friend_id'] == $friend['Friend']['id'])
+                                    {
+                                        $selectedFriend = $currentSelectedFriend;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                        ?>
                         <tr>
-                            <td><?php echo $this->Form->input(null, array('type' => 'checkbox', 'name' => "data[$count][friend_id]", 'hiddenField' => false, 'label' => false, 'value' => $friend['Friend']['id'])); ?></td>
+                            <td><?php echo $this->Form->input(null, array('type' => 'checkbox', 'name' => "data[$count][friend_id]", 'checked' => !is_null($selectedFriend), 'hiddenField' => false, 'label' => false, 'value' => $friend['Friend']['id'])); ?></td>
                             <td>
                                 <?php 
                             
@@ -48,10 +64,21 @@
                                         '8' => 'Hoja 8'
                                     );
                                     
-                                    echo $this->Form->input(
-                                        null,
-                                        array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => '1', 'label' => false)
-                                    );
+                                    if(!is_null($selectedFriend))
+                                    {
+                                        echo $this->Form->input(
+                                            null,
+                                            array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => $selectedFriend['SelectedFriend']['leaf'], 'label' => false)
+                                        );                                        
+                                    }
+                                    else
+                                    {
+                                        echo $this->Form->input(
+                                            null,
+                                            array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => 1, 'label' => false)
+                                        );
+                                    }
+                                    
                                 
                                 ?>
                             </td>

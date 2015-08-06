@@ -29,6 +29,7 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 		echo $this->Html->meta('icon');
 
 		echo $this->Html->css('cake.generic');
+                echo $this->Html->script('fabric/dist/fabric.js');
 
 		echo $this->fetch('meta');
 		echo $this->fetch('css');
