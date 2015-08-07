@@ -7,6 +7,7 @@
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "modifySelectedUsers")); ?>">Modify Selected Users</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "refreshData")); ?>">Refresh</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "showTree")); ?>">Tree</a></li>
+        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "account")); ?>">Cuenta</a></li>
     </ul>
 </div>
 

@@ -6,6 +6,7 @@
         <li><a href="<?php echo $logout_url; ?>">Logout</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "showSelectedUsers")); ?>">Show Selected Users</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "refreshData")); ?>">Refresh</a></li>
+        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "account")); ?>">Cuenta</a></li>
     </ul>
 </div>
 
@@ -68,14 +69,14 @@
                                     {
                                         echo $this->Form->input(
                                             null,
-                                            array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => $selectedFriend['SelectedFriend']['leaf'], 'label' => false)
+                                            array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => $selectedFriend['SelectedFriend']['leaf'], 'label' => false, 'empty' => 'Selecciona')
                                         );                                        
                                     }
                                     else
                                     {
                                         echo $this->Form->input(
                                             null,
-                                            array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => 1, 'label' => false)
+                                            array('options' => $leafs, 'name' => "data[$count][leaf]", 'default' => false, 'empty' => 'Selecciona', 'label' => false)
                                         );
                                     }
                                     

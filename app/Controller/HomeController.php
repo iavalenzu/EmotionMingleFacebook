@@ -25,11 +25,11 @@ class HomeController extends AppController {
 
         session_start();
 
-        $this->fb = new Facebook\Facebook([
+        $this->fb = new Facebook\Facebook(array(
             'app_id' => '791535754293026',
             'app_secret' => 'c20f2a9cc413df08251eccc086c1310c',
             'default_graph_version' => 'v2.2',
-        ]);
+        ));
 
         $this->set("logout_url", $this->getLogoutUrl2());
         
@@ -55,7 +55,7 @@ class HomeController extends AppController {
         
         $helper = $this->fb->getRedirectLoginHelper();
 
-        $permissions = ['email', 'user_likes']; // optional
+        $permissions = array('email', 'user_likes'); // optional
 
         $loginCallbackUrl = Router::url(array('controller'=>'home', 'action'=>'loginCallback'), true);
         
@@ -100,7 +100,7 @@ class HomeController extends AppController {
          * Se obtienen las fotos asociadas al usuario en sesion
          */
         
-        $response = $this->fb->get('/me?fields=photos{id,from}');
+        $response = $this->fb->get('/me?fields=photos.limit(400){id,from}');
         
         $node = $response->getGraphNode();
 
@@ -190,7 +190,7 @@ class HomeController extends AppController {
          * Se obtienen los likes asociados a las fotos del usuario en sesion
          */
         
-        $response = $this->fb->get('/me?fields=posts{likes{id,username,pic,profile_type,name},message,id,from}');
+        $response = $this->fb->get('/me?fields=posts.limit(400){likes.limit(100){id,username,pic,profile_type,name},message,id,from}');
         
         $node = $response->getGraphNode();
 
@@ -315,7 +315,7 @@ class HomeController extends AppController {
          * Se obtienen los comentarios asociados a las fotos del usuario en sesion
          */
         
-        $response = $this->fb->get('/me?fields=posts{comments{from,message,id},id,from}');
+        $response = $this->fb->get('/me?fields=posts.limit(400){comments.limit(100){from,message,id},id,from}');
         
         $node = $response->getGraphNode();
 
@@ -433,16 +433,17 @@ class HomeController extends AppController {
          * Se obtienen los likes asociados a las fotos del usuario en sesion
          */
         
-        $response = $this->fb->get('/me?fields=photos{likes{username,name,profile_type,id,pic},id,from}');
+        $response = $this->fb->get('/me?fields=photos.limit(400){likes.limit(100){username,name,profile_type,id,pic},id,from}');
         
         $node = $response->getGraphNode();
 
         $photos = $node->getField('photos');
         
+        
         if(empty($photos)){
             return;
         }
-
+        
         /**
          * Para cada foto se obtienen los likes asociados
          */
@@ -558,7 +559,7 @@ class HomeController extends AppController {
          * Se obtienen los comentarios asociados a las fotos del usuario en sesion
          */
         
-        $response = $this->fb->get('/me?fields=photos{comments{from,message,id},id,from}');
+        $response = $this->fb->get('/me?fields=photos.limit(400){comments.limit(100){from,message,id},id,from}');
         
         $node = $response->getGraphNode();
 
@@ -676,7 +677,7 @@ class HomeController extends AppController {
          * Se obtienen los comentarios asociados a las fotos del usuario en sesion
          */
         
-        $response = $this->fb->get('/me?fields=tagged{from,message,type}');
+        $response = $this->fb->get('/me?fields=tagged.limit(400){from,message,type}');
         
         $node = $response->getGraphNode();
 
@@ -834,12 +835,13 @@ class HomeController extends AppController {
 
         try 
         {
-            $response = $this->fb->get('/me?fields=id,name');
+            $response = $this->fb->get('/me?fields=id,name,picture');
 
             $userNode = $response->getGraphUser();
             
             $userId = $userNode->getId();
             $userName = $userNode->getName();
+            $userPicture = $userNode->getPicture();
 
             $user = $this->User->findByFacebookUserId($userId);
 
@@ -847,7 +849,9 @@ class HomeController extends AppController {
             {
                 $user = array(
                     'name' => $userName,
-                    'facebook_user_id' => $userId
+                    'facebook_user_id' => $userId,
+                    'api_key' => mt_rand (100000 , 999999),
+                    'pic' => $userPicture['url']
                 );
 
                 $this->User->create();
@@ -1023,6 +1027,25 @@ class HomeController extends AppController {
         
     }
     
+    function account()
+    {
+        $accessToken = $this->checkSession();
+
+        // Sets the default fallback access token so we don't have to pass it to each request
+        $this->fb->setDefaultAccessToken($accessToken);
+
+        $response = $this->fb->get('/me?fields=id,name');
+
+        $userNode = $response->getGraphUser();
+
+        $userId = $userNode->getId();
+
+        $user = $this->User->findByFacebookUserId($userId);
+
+        $this->set('user', $user);
+        
+    }
+    
     function showTree()
     {
         $accessToken = $this->checkSession();
@@ -1069,20 +1092,44 @@ class HomeController extends AppController {
         return $friend['Friend']['interactions'];
     }
     
-    function getEmotionMingleTreeData($user_id = null)
+    function getEmotionMingleTreeData($user_api_key = null)
     {
         $this->autoRender = false;
         $this->response->type('json');
         
+        $user = $this->User->findByApiKey($user_api_key);
+
+        $leaf1 = 0;
+        $leaf2 = 0;
+        $leaf3 = 0;
+        $leaf4 = 0;
+        $leaf5 = 0;
+        $leaf6 = 0;
+        $leaf7 = 0;
+        $leaf8 = 0;
+        
+        
+        if($user)
+        {
+            $leaf1 = $this->getLeafValue(1, $user['User']['id']);
+            $leaf2 = $this->getLeafValue(2, $user['User']['id']);
+            $leaf3 = $this->getLeafValue(3, $user['User']['id']);
+            $leaf4 = $this->getLeafValue(4, $user['User']['id']);
+            $leaf5 = $this->getLeafValue(5, $user['User']['id']);
+            $leaf6 = $this->getLeafValue(6, $user['User']['id']);
+            $leaf7 = $this->getLeafValue(7, $user['User']['id']);
+            $leaf8 = $this->getLeafValue(8, $user['User']['id']);
+        }
+        
 	$leafs_values = array(
-	    "Leaf1" => $this->getLeafValue(1, $user_id),
-	    "Leaf2" => $this->getLeafValue(2, $user_id),
-	    "Leaf3" => $this->getLeafValue(3, $user_id),
-	    "Leaf4" => $this->getLeafValue(4, $user_id),
-	    "Leaf5" => $this->getLeafValue(5, $user_id),
-	    "Leaf6" => $this->getLeafValue(6, $user_id),
-	    "Leaf7" => $this->getLeafValue(7, $user_id),
-	    "Leaf8" => $this->getLeafValue(8, $user_id)
+	    "Leaf1" => $leaf1,
+	    "Leaf2" => $leaf2,
+	    "Leaf3" => $leaf3,
+	    "Leaf4" => $leaf4,
+	    "Leaf5" => $leaf5,
+	    "Leaf6" => $leaf6,
+	    "Leaf7" => $leaf7,
+	    "Leaf8" => $leaf8
 	);
         
         $json = json_encode($leafs_values);

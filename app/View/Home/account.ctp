@@ -5,54 +5,50 @@
     <ul>
         <li><a href="<?php echo $logout_url; ?>">Logout</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "modifySelectedUsers")); ?>">Modify Selected Users</a></li>
-        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "showSelectedUsers")); ?>">Show Selected Users</a></li>
         <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "refreshData")); ?>">Refresh</a></li>
-        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "account")); ?>">Cuenta</a></li>
+        <li><a href="<?php echo $this->Html->url(array("controller" => "home", "action" => "showTree")); ?>">Tree</a></li>
     </ul>
 </div>
 
 <div class="view">
+
+    <?php if(isset($user)): ?>
     
-    <?php if(isset($friend)): ?>
-            <?php //debug($friend); ?>
-            <fieldset>
-                <legend><?php echo $friend['Friend']['name']; ?></legend>
+        <fieldset>
+            <legend>Detalles de Cuenta</legend>
                 <table>
                     <tbody>
                         <tr>
                             <th></th>
                             <td>
-                                <img src="<?php echo $friend['Friend']['pic']; ?>" alt="<?php echo $friend['Friend']['name']; ?>">
+                               <img src="<?php echo $user['User']['pic']; ?>" alt="<?php echo $user['User']['name']; ?>">
+                             </td>
+                        </tr>
+                        <tr>
+                            <th>Nombre</th>
+                            <td>
+                                <?php echo $user['User']['name']; ?>
                             </td>
                         </tr>
                         <tr>
-                            <th>Likes</th>
+                            <th>Api Key</th>
                             <td>
-                                <?php echo count($friend['Like']); ?>
+                                <?php echo $user['User']['api_key']; ?>
                             </td>
                         </tr>
                         <tr>
-                            <th>Comments</th>
+                            <th>Facebook Id</th>
                             <td>
-                                <?php echo count($friend['Comment']); ?>
+                                <?php echo $user['User']['facebook_user_id']; ?>
                             </td>
                         </tr>
-                        <tr>
-                            <th>Tags</th>
-                            <td>
-                                <?php echo count($friend['Tag']); ?>
-                            </td>
-                        </tr>
-                            
                     </tbody>
                 </table>
-            </fieldset>
+        </fieldset>
 
     <?php else: ?>
         <h2>No hay datos para mostrar!!</h2>
     <?php endif; ?>
     
 </div>
-
-
 
