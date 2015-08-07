@@ -42,6 +42,12 @@
                                 <?php echo $user['User']['facebook_user_id']; ?>
                             </td>
                         </tr>
+                        <tr>
+                            <th>Emotion Mingle Tree Service Url</th>
+                            <td>
+                                <?php echo $this->Html->url(array("controller" => "home", "action" => "getEmotionMingleTreeData", $user['User']['api_key']), true); ?>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
         </fieldset>
