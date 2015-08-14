@@ -132,7 +132,7 @@ class HomeController extends AppController {
 
             $photos = $node->getField('photos');
 
-            if(empty($photos)){
+            if(is_null($photos) || empty($photos)){
                 return;
             }
 
@@ -142,13 +142,26 @@ class HomeController extends AppController {
 
             foreach($photos as $photo)
             {
+                if(!isset($photo['id']) || empty($photo['id'])){
+                    continue;
+                }
+                
                 $sourceId = $photo['id'];
+                
+                if(!isset($photo['from']) || empty($photo['from'])){
+                    continue;
+                }
+                
                 $from = $photo['from'];
 
                 /**
                  * Solo se consderan las fotos no subidas por mi
                  */
 
+                if(!isset($from['id']) || empty($from['id'])){
+                    continue;
+                }
+                
                 $friendId = $from['id'];
                 $friendName = $from['name'];
 
@@ -251,7 +264,7 @@ class HomeController extends AppController {
 
             $posts = $node->getField('posts');
 
-            if(empty($posts)){
+            if(is_null($posts) || empty($posts)){
                 return;
             }
 
@@ -261,6 +274,10 @@ class HomeController extends AppController {
 
             foreach($posts as $post)
             {
+                if(!isset($post['id']) || empty($post['id'])){
+                    continue;
+                }
+                
                 $sourceId = $post['id'];
                 $from = $post['from'];
 
@@ -275,7 +292,7 @@ class HomeController extends AppController {
 
                 $likes = $post->getField('likes');
 
-                if(empty($likes))
+                if(is_null($likes) || empty($likes))
                 {
                     continue;
                 }
@@ -286,6 +303,10 @@ class HomeController extends AppController {
 
                 foreach($likes as $like)
                 {
+                    if(!isset($like['id']) || empty($like['id'])){
+                        continue;
+                    }
+                    
                     $friendId = $like['id'];
                     $friendName = $like['name'];
                     $friendPic = $like['pic'];
@@ -405,7 +426,7 @@ class HomeController extends AppController {
 
             $posts = $node->getField('posts');
 
-            if(empty($posts)){
+            if(is_null($posts) || empty($posts)){
                 return;
             }
 
@@ -415,6 +436,10 @@ class HomeController extends AppController {
 
             foreach($posts as $post)
             {
+                if(!isset($post['id']) || empty($post['id'])){
+                    continue;
+                }
+                
                 $sourceId = $post['id'];
                 $from = $post['from'];
 
@@ -442,6 +467,14 @@ class HomeController extends AppController {
                 {
                     $from = $comment->getField('from');
 
+                    if(is_null($from) || empty($from)){
+                        continue;
+                    }
+
+                    if(!isset($from['id']) || empty($from['id'])){
+                        continue;
+                    }
+                    
                     $friendId = $from['id'];
                     $friendName = $from['name'];
 
@@ -523,13 +556,10 @@ class HomeController extends AppController {
     
     private function processPhotoLikes($user_id)
     {
-
-        
         if(is_null($user_id) || empty($user_id)){
             $this->log("ProcessPhotoLikes: El user_id es nulo o vacio!");
             return;
         }
-        
         
         $this->User->recursive = -1;
         $loggedUser = $this->User->findById($user_id);
@@ -551,8 +581,7 @@ class HomeController extends AppController {
 
             $photos = $node->getField('photos');
 
-
-            if(empty($photos)){
+            if(is_null($photos) || empty($photos)){
                 return;
             }
 
@@ -562,9 +591,22 @@ class HomeController extends AppController {
 
             foreach($photos as $photo)
             {
+                if(!isset($photo['id']) || empty($photo['id'])){
+                    continue;
+                }
+                
                 $sourceId = $photo['id'];
+                
+                if(!isset($photo['from']) || empty($photo['from'])){
+                    continue;
+                }
+                
                 $from = $photo['from'];
 
+                if(!isset($from['id']) || empty($from['id'])){
+                    continue;
+                }
+                
                 /**
                  * NO se consideran las photos que no hayan sido subidas por mi
                  */
@@ -576,8 +618,7 @@ class HomeController extends AppController {
 
                 $likes = $photo->getField('likes');
 
-
-                if(empty($likes))
+                if(is_null($likes) || empty($likes))
                 {
                     continue;
                 }
@@ -588,7 +629,12 @@ class HomeController extends AppController {
 
                 foreach($likes as $like)
                 {
+                    if(!isset($like['id']) || empty($like['id'])){
+                        continue;
+                    }
+                    
                     $friendId = $like['id'];
+                    
                     $friendName = $like['name'];
                     $friendPic = $like['pic'];
 
@@ -703,7 +749,7 @@ class HomeController extends AppController {
 
             $photos = $node->getField('photos');
 
-            if(empty($photos)){
+            if(is_null($photos) || empty($photos)){
                 return;
             }
 
@@ -713,9 +759,27 @@ class HomeController extends AppController {
 
             foreach($photos as $photo)
             {
+                if(!isset($photo['id']) || empty($photo['id']))
+                {
+                    continue;
+                }
+                
                 $sourceId = $photo['id'];
+                
+                
+                if(!isset($photo['from']) || empty($photo['from']))
+                {
+                    continue;
+                }
+                
                 $from = $photo['from'];
 
+                
+                if(!isset($from['id']) || empty($from['id']))
+                {
+                    continue;
+                }
+                
                 /**
                  * NO se consideran las photos que no hayan sido subidas por mi
                  */
@@ -728,7 +792,7 @@ class HomeController extends AppController {
 
                 $comments = $photo->getField('comments');
 
-                if(empty($comments))
+                if(is_null($comments) || empty($comments))
                 {
                     continue;
                 }
@@ -741,6 +805,15 @@ class HomeController extends AppController {
                 {
 
                     $from = $comment->getField('from');
+                    
+                    if(is_null($from) || empty($from)){
+                        continue;
+                    }
+ 
+                    if(!isset($from['id']) || empty($from['id']))
+                    {
+                        continue;
+                    }
 
                     $friendId = $from['id'];
                     $friendName = $from['name'];
@@ -848,7 +921,7 @@ class HomeController extends AppController {
 
             $tagged = $node->getField('tagged');
 
-            if(empty($tagged)){
+            if(is_null($tagged) || empty($tagged)){
                 return;
             }
 
@@ -858,12 +931,25 @@ class HomeController extends AppController {
 
             foreach($tagged as $tag)
             {
+                if(!isset($tag['id']) || empty($tag['id'])){
+                    continue;
+                }
+
                 $sourceId = $tag['id'];
+                
+                if(!isset($tag['from']) || empty($tag['from'])){
+                    continue;
+                }
+                
                 $from = $tag['from'];
 
                 /**
                  * NO se consideran las photos que no hayan sido subidas por mi
                  */
+                
+                if(!isset($from['id']) || empty($from['id'])){
+                    continue;
+                }
 
                 $friendId = $from['id'];
                 $friendName = $from['name'];
