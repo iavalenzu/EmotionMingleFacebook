@@ -15,18 +15,54 @@
 
 <script>
 
+function getLeafPosition(numLeaf)
+{
+    switch(numLeaf)
+    {
+        case 1:
+            return {top: 640, left: 100};
+        case 2:
+            return {top: 480, left: 100};
+        case 3:
+            return {top: 480, left: 250};
+        case 4:
+            return {top: 250, left: 200};
+        case 5:
+            return {top: 220, left: 350};
+        case 6:
+            return {top: 280, left: 500};
+        case 7:
+            return {top: 480, left: 500};
+        case 8:
+            return {top: 500, left: 600};
+        default:
+            return {top: 10000, left: 10000};
+    }
+}
+
+
 var canvas = new fabric.StaticCanvas('canvas');
 
 fabric.Image.fromURL('http://localhost/EmotionMingleFacebook/img/arbol_01.png', function(oImg) {
   canvas.add(oImg);
 });
 
-fabric.Image.fromURL('https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xfp1/v/t1.0-1/p100x100/969320_10201342091407207_1253389166_n.jpg?oh=5ca40dc81e159f7981c2f65e525c8948&oe=56478CB6&__gda__=1446551491_8e7e15b658f42b1bd1d24eb475a01fc8', function(oImg) {
-    oImg.top = 640;
-    oImg.left = 100;
-    oImg.scale(0.8);
-    canvas.add(oImg);
-});
+<?php if(isset($selectedUsers)): ?> 
+                            
+    <?php foreach($selectedUsers as $selectedUser): ?>
+                            
+    fabric.Image.fromURL('<?php echo $selectedUser['Friend']['pic']; ?>', function(oImg) {
+        oImg.top = getLeafPosition(<?php echo $selectedUser['SelectedFriend']['leaf']; ?>).top;
+        oImg.left = getLeafPosition(<?php echo $selectedUser['SelectedFriend']['leaf']; ?>).left;
+        oImg.scale(0.8);
+        canvas.add(oImg);
+    });
+                            
+    <?php endforeach; ?>                 
+<?php endif; ?>
+
+
+
 
 
 </script>

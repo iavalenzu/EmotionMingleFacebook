@@ -1378,7 +1378,47 @@ class HomeController extends AppController {
     
     function showTree()
     {
-        $accessToken = $this->checkSession();
+        try
+        {
+        
+            $accessToken = $this->checkSession();
+
+            // Sets the default fallback access token so we don't have to pass it to each request
+            $this->fb->setDefaultAccessToken($accessToken);
+
+            $response = $this->fb->get('/me?fields=id,name');
+
+            $userNode = $response->getGraphUser();
+
+            $userId = $userNode->getId();
+
+            $user = $this->User->findByFacebookUserId($userId);
+
+            if($user)
+            {
+                $selectedUsers =  $this->SelectedFriend->find('all', array(
+                    'conditions' => array(
+                        'SelectedFriend.user_id' => $user['User']['id']
+                    )
+                ));
+
+                $this->set('selectedUsers', $selectedUsers);
+
+            }   
+        
+        } 
+        catch (Facebook\Exceptions\FacebookResponseException $e) 
+        {
+            $this->log("ShowSelectedUsers: " . $e->getMessage());
+            $this->redirect("logout");
+        } 
+        catch (Facebook\Exceptions\FacebookSDKException $e) 
+        {
+            $this->log("ShowSelectedUsers: " . $e->getMessage());
+            $this->redirect("logout");
+        }
+        
+        
         
     }
     
