@@ -43,7 +43,7 @@ function getLeafPosition(numLeaf)
 
 var canvas = new fabric.StaticCanvas('canvas');
 
-fabric.Image.fromURL('http://localhost/EmotionMingleFacebook/img/arbol_01.png', function(oImg) {
+fabric.Image.fromURL('<?php echo $this->Html->url('/img/arbol_01.png'); ?>', function(oImg) {
   canvas.add(oImg);
 });
 
